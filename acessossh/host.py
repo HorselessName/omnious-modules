@@ -1,4 +1,5 @@
 import paramiko
+
 from time import sleep
 from rich import inspect  # https://rich.readthedocs.io/en/stable/reference/init.html#rich.inspect
 
@@ -7,11 +8,12 @@ class Host:
     """This class represents the SSH connection to a host.
     It has attributes related to the remote host being connected and the state of the SSH connection."""
 
-    def __init__(self, remote_host, login, password):
-        # Iniciar o Objeto vazio e com os atributos informados
+    def __init__(self, remote_host: str, login: str, password: str):
+        # Init my objet with the att above.
         self.remote_host = remote_host
         self.login = login
         self.password = password
+        # My host will have one object of a "Paramiko SSHClient" type
         self.ssh_client = None  # Fix Variable Before Assignment Warning.
 
     def connect(self):

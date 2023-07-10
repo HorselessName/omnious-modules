@@ -6,7 +6,7 @@ from acessossh.host import Host
 
 app = Flask(__name__)
 
-# Toda vez que iniciar o Flask, minha lista de objetos do tipo Host, inicia vazia.
+# Everytime I run my Flask app, my SSH connections dict starts empty.
 hosts = {}
 
 """
