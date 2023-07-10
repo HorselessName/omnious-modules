@@ -1,13 +1,15 @@
 import socket
 from time import sleep
+from typing import Dict
+from rich import print
 
-from flask import Flask
-from acessossh.host import Host
+from flask import Flask, jsonify
+from acessossh.host import RemoteClient
 
 app = Flask(__name__)
 
-# Everytime I run my Flask app, my SSH connections dict starts empty.
-hosts = {}
+# My Dict will contain a list of Objects of RemoteClient type - Something like ArrayList<RemoteClient>
+remoteclients: Dict[str, RemoteClient] = {}
 
 """
 Usando o Flask e nossa classe que representa uma conexão ao host pelo SSH, conseguimos instanciar e abrir
@@ -31,23 +33,24 @@ Este fala sobre invocar uma shell e usar o send para enviar vários comandos.
 
 
 @app.route('/')
-def conectarnohost():
+def conexaossh():
+    """Rota que vai gerar nossa conexão SSH no cliente remoto."""
     try:
         hostname = "172.16.107.9"
         login = "administrator"
         password = "200JJ@#Admin1984"
 
-        # Instanciar o objeto da conexão SSH
-        ssh_client = Host(hostname, login, password)
+        # Instanciar o objeto que é cliente remoto e adicionar à lista de objetos.
+        remoteclients[hostname] = RemoteClient(hostname, login, password)
 
         # This is Commented out for Logging/Debugging and Testing Part
         print("Testing SSH Connection.")
 
-        # Connect
-        response = ssh_client.connect()
+        # Establish the SSH session on the host.
+        response = remoteclients[hostname].conexaossh
 
         # Check if it remains connected - True if Connected.
-        print(ssh_client.isconnected())
+        print(remoteclients[hostname].conexaossh)
         return f'Response [Request] => {response}'
 
     except socket.gaierror as erro_noresolveip:
@@ -55,6 +58,15 @@ def conectarnohost():
         IP do host informado. """
         print(f'Erro na resolução do IP [Console] => {erro_noresolveip}')
         return f'Erro na resolução do IP [Request] => {erro_noresolveip}'
+
+
+@app.route("/listarobjetos")
+def listarobjetos():
+    # Converter cada objeto RemoteClient em um dicionário
+    remoteclients_dict = {hostname: client.to_dict() for hostname, client in remoteclients.items()}
+
+    # Retornar o dicionário de objetos como uma resposta JSON
+    return jsonify(remoteclients_dict)
 
 
 if __name__ == '__main__':
