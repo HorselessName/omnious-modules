@@ -8,7 +8,7 @@ from acessossh.host import RemoteClient
 
 app = Flask(__name__)
 
-# My Dict will contain a list of Objects of RemoteClient type - Something like ArrayList<RemoteClient>
+# Dict will contain a list of Objects of "<acessossh.host.RemoteClient>" Type, with a key called "Hostname".
 remoteclients: Dict[str, RemoteClient] = {}
 
 """
@@ -44,14 +44,16 @@ def conexaossh():
         remoteclients[hostname] = RemoteClient(hostname, login, password)
 
         # This is Commented out for Logging/Debugging and Testing Part
-        print("Testing SSH Connection.")
+        print("Trying to establish SSH Connection...")
 
-        # Establish the SSH session on the host.
-        response = remoteclients[hostname].conexaossh
+        # Establish the SSH session on the host object inside the dict.
+        remoteclient = remoteclients.get(hostname)
+        remoteclient.establishssh()
 
-        # Check if it remains connected - True if Connected.
-        print(remoteclients[hostname].conexaossh)
-        return f'Response [Request] => {response}'
+        # Check informations regarding remote client, including SSH Connection status.
+        print(f"RemoteClient Created => {remoteclient.atributos}")
+        print(f"SSH Status => {remoteclient.isconnected()}")
+        return f'RemoteClient Created => {remoteclient.atributos}'
 
     except socket.gaierror as erro_noresolveip:
         """Esse Except trata o erro [Errno 11001] getaddrinfo que ocorre quando o app não consegue resolver o
@@ -63,7 +65,7 @@ def conexaossh():
 @app.route("/listarobjetos")
 def listarobjetos():
     # Converter cada objeto RemoteClient em um dicionário
-    remoteclients_dict = {hostname: client.to_dict() for hostname, client in remoteclients.items()}
+    remoteclients_dict = {hostname: client.atributos for hostname, client in remoteclients.items()}
 
     # Retornar o dicionário de objetos como uma resposta JSON
     return jsonify(remoteclients_dict)
