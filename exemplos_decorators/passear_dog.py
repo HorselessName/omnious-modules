@@ -5,21 +5,23 @@ class DogClass:
         self.dogname = dogname
         self.authorized_users = ["Alice", "Bob", "Charlie"]
 
-    def check_authorization(self, func=None):
+    def check_authorization(self, funcwalk_dog=None):
         """Espera uma função como argumento."""
-
-        # Pro método não ser considerado estático, é só referenciar um atributo da classe.
-        print("Checando permissão para os usuários: ", self.dogname)
 
         def funcwrapper(walkername, *args, **kwargs):
             """Envolve nossa funcao decorada `walk_dog`"""
+            print("Checando permissão para o cachorro: ", self.dogname)
             print(f"Wrapper => unnamed args/argumentos posicionais: {args}")
             print(f"Wrapper => keyword args/argumentos nomeados: {kwargs}")
             print(f"Wrapper => argumento posicional normal: {walkername}")
-            return True
+            return funcwalk_dog(*args, **kwargs)
 
         # Executar a função aninhada
-        return funcwrapper if func else False
+        if funcwalk_dog is not None:
+            # Se não for fornecida uma função decorada, retornar o próprio decorator
+            return funcwrapper
+        else:
+            return "Decorador."
 
     # Executar o Decorador, e dentro do Decorador, executa o wrapper....
     @check_authorization
