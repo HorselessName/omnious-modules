@@ -1,7 +1,5 @@
 import socket
-from time import sleep
 from typing import Dict
-from rich import print
 
 from flask import Flask, jsonify
 from acessossh.host import RemoteClient
@@ -33,7 +31,13 @@ Este fala sobre invocar uma shell e usar o send para enviar vários comandos.
 
 
 @app.route('/')
-def conexaossh():
+def olamundo():
+    """Rota que vai gerar nossa conexão SSH no cliente remoto."""
+    return "Hello World"
+
+
+@app.route('/atualizarsistema')
+def atualizarsistema():
     """Rota que vai gerar nossa conexão SSH no cliente remoto."""
     try:
         hostname = "172.16.107.9"
@@ -50,10 +54,13 @@ def conexaossh():
         remoteclient = remoteclients.get(hostname)
         remoteclient.establishssh()
 
+        # Precisa ser uma lista.
+        comandos = ["cd /var/www/html", "ls"]
+        response = remoteclient.enviarcomandos(comandos)
+
         # Check informations regarding remote client, including SSH Connection status.
-        print(f"RemoteClient Created => {remoteclient.atributos}")
-        print(f"SSH Status => {remoteclient.isconnected()}")
-        return f'RemoteClient Created => {remoteclient.atributos}'
+        print(f"Process complete. => {response}")
+        return f'Process Complete. => {response}'
 
     except socket.gaierror as erro_noresolveip:
         """Esse Except trata o erro [Errno 11001] getaddrinfo que ocorre quando o app não consegue resolver o
