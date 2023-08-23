@@ -1,7 +1,7 @@
 
 # The Omnious Project - Modules
 
-This repository holds modules that will be integrated into [The Omnious Project](), a framework that aims to provide automated cyber security tasks and generate data containing useful informations about vulnerabilities and security problems in its target.
+This repository holds modules that will be integrated into [The Omnious Project](https://github.com/entr0pie/Hades), a framework that aims to provide automated cyber security tasks and generate data containing useful informations about vulnerabilities and security problems in its target.
 
 ## Roadmap of Modules
 
