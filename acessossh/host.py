@@ -145,7 +145,7 @@ class RemoteClient:
             # Save Transport reference for later use when doing low level stuff.
             self.ssh_transport = self.ssh_client.get_transport()
 
-            print(f"Sessão do SSH adicionada com sucesso ao Host. " \
+            print(f"Sessão do SSH adicionada com sucesso ao Host. "
                   f"\n{self}")
 
             return f"Sessão do SSH adicionada com sucesso ao Host. " \
@@ -181,7 +181,7 @@ class RemoteClient:
             self.createsession()  # Tento criar a session novamente.
             return "No SSH Connection. Connecting..."
 
-    def enviarcomandos(self, comandos: list):
+    def enviarcomandos(self, comandos: list, senha=None):
         """ This will send commands to a session, and after completed, will end the current session.
             According to Channel docs at Ref. below, when executing a command, it closes the channel,
             so you must use stdin, stdout and stderr approach to use multiple commands.
@@ -212,25 +212,42 @@ class RemoteClient:
             # Entro no Channel que criamos anteriormente e envio os comandos.
             outputcomandos = []
             for command in comandos:
-                print(f"{'#' * 5} Executing command : {command} {'#' * 5}")
-                self.ssh_channel = self.ssh_transport.open_session()
-                self.ssh_channel.exec_command(command)
+                if "sudo" in command and senha is not None:
+                    # exec_command() method closes all channels (stdin, stdout, stderr) when execution is complete.
+                    stdin, stdout, stderr = self.ssh_client.exec_command("sudo -S %s" % command)
 
-                # https://docs.paramiko.org/en/stable/api/channel.html#paramiko.channel.Channel.recv_exit_status
-                return_code = self.ssh_channel.recv_exit_status()  # Exit code from SSH Server.
+                    # If stdout is still open then sudo is asking us for a password
+                    if stdout.channel.closed is False:
+                        stdin.write('%s\n' % senha)
+                        stdin.flush()
 
-                stdout = self.ssh_channel.makefile('rb').read()
-                stderr = self.ssh_channel.makefile_stderr('rb').read()
+                else:
+                    print(f"{'#' * 5} Executing command : {command} {'#' * 5}")
+                    self.ssh_channel = self.ssh_transport.open_session()
+                    print(f"{'#' * 5} Tentando Destrinchar os STDIN, STDOUT e STDERR do Exec Command... {'#' * 5}")
 
-                # Adicionar as informacoes do comando ao meu dict.
-                comandoatual = {
-                    "Comando": command,
-                    "Codigo de Retorno": return_code,
-                    "Output": stdout.decode(),
-                    "Erro": stderr.decode()
-                }
+                    self.ssh_channel.exec_command(command)
+                    print(f"{'#' * 5} Passei do Channel Exec Command {'#' * 5}")
 
-                outputcomandos.append(comandoatual)
+                    print(f"{'#' * 5} Passei do If - Fora dele {'#' * 5}")
+
+                    # https://docs.paramiko.org/en/stable/api/channel.html#paramiko.channel.Channel.recv_exit_status
+                    return_code = self.ssh_channel.recv_exit_status()  # Exit code from SSH Server.
+
+                    stdout = self.ssh_channel.makefile('rb').read()
+                    stderr = self.ssh_channel.makefile_stderr('rb').read()
+
+                    print(f"{'#' * 5} Passei do Return Code e dos STD Out e Err {'#' * 5}")
+
+                    # Adicionar as informacoes do comando ao meu dict.
+                    comandoatual = {
+                        "Comando": command,
+                        "Codigo de Retorno": return_code,
+                        "Output": stdout.decode(),
+                        "Erro": stderr.decode()
+                    }
+
+                    outputcomandos.append(comandoatual)
 
             # Depois de executar meus comandos, fecho tudo
             self.ssh_client.close()
